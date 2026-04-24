@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}MotorCash | Lucro real para motoristas{% endblock %}
+{% block page_title %}O app que mostra o lucro real do motorista{% endblock %}
+{% block content %}
+<section class="hero-grid">
+    <div class="hero-copy card glass">
+        <span class="tag">Produto pronto para vender</span>
+        <h2>Controle ganhos, gastos e lucro líquido no celular.</h2>
+        <p>Feito para Uber, 99, inDrive, entregadores e motoristas autônomos. Acompanhe lucro por hora, lucro por km e meta do dia em poucos segundos.</p>
+        <div class="cta-row">
+            <a class="btn btn-primary" href="{{ url_for('register') }}">Começar agora</a>
+            <a class="btn btn-secondary" href="{{ url_for('login') }}">Já tenho conta</a>
+        </div>
+        <div class="benefit-list compact-grid">
+            <div class="mini-stat"><strong>Lucro real</strong><span>Não só faturamento</span></div>
+            <div class="mini-stat"><strong>Metas</strong><span>Diária, semanal e mensal</span></div>
+            <div class="mini-stat"><strong>PWA</strong><span>Instalável no celular</span></div>
+            <div class="mini-stat"><strong>SaaS</strong><span>Pronto para assinatura</span></div>
+        </div>
+    </div>
+
+    <div class="hero-panel card">
+        <img class="poster" src="{{ url_for('static', filename='img/promo.png') }}" alt="MotorCash apresentação">
+    </div>
+</section>
+
+<section class="three-col">
+    <article class="card">
+        <h3>O que o app entrega</h3>
+        <ul class="clean-list">
+            <li>Ganhos por plataforma</li>
+            <li>Gastos categorizados</li>
+            <li>Lucro por hora e por km</li>
+            <li>Reserva de manutenção</li>
+            <li>Estrutura de planos</li>
+        </ul>
+    </article>
+    <article class="card">
+        <h3>Como vender</h3>
+        <p>Posicione como copiloto financeiro do motorista. A promessa principal é mostrar quanto sobra no bolso no fim do dia.</p>
+    </article>
+    <article class="card">
+        <h3>Pronto para escalar</h3>
+        <p>Integre cobrança recorrente, teste grátis, notificações e painel administrativo sem refazer a base do sistema.</p>
+    </article>
+</section>
+
+{% if announcements %}
+<section class="card">
+    <h3>Destaques do produto</h3>
+    <div class="announcement-grid">
+        {% for item in announcements %}
+        <div class="announcement-item">
+            <strong>{{ item.title }}</strong>
+            <p>{{ item.body }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Gastos | MotorCash{% endblock %}
+{% block page_title %}Controle seus gastos{% endblock %}
+{% block content %}
+<section class="two-col">
+    <form class="card form-card" method="post">
+        <h2>Novo gasto</h2>
+        <label>Categoria
+            <select name="category">
+                {% for category in categories %}
+                <option value="{{ category }}">{{ category }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>Descrição
+            <input type="text" name="description" placeholder="Abastecimento, troca de óleo, pedágio, etc.">
+        </label>
+        <label>Valor
+            <input type="number" step="0.01" name="amount" required>
+        </label>
+        <label>Data
+            <input type="date" name="entry_date" value="{{ today }}">
+        </label>
+        <button class="btn btn-primary" type="submit">Salvar gasto</button>
+    </form>
+
+    <div class="card">
+        <h2>Histórico</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Categoria</th>
+                        <th>Valor</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in entries %}
+                    <tr>
+                        <td>{{ entry.entry_date.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ entry.category }}</td>
+                        <td>R$ {{ '%.2f'|format(entry.amount) }}</td>
+                        <td>
+                            <form method="post" action="{{ url_for('delete_entry', kind='expense', entry_id=entry.id) }}">
+                                <button class="btn-link" type="submit">Excluir</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4">Nenhum gasto cadastrado.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

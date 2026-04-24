@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MotorCash{% endblock %}</title>
+    <meta name="theme-color" content="#0b1220">
+    <meta name="description" content="Controle financeiro para motoristas de aplicativo com foco em lucro real.">
+    <link rel="manifest" href="{{ url_for('manifest') }}">
+    <link rel="icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <a class="brand" href="{{ url_for('landing') if not current_user else url_for('dashboard') }}">
+                <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="MotorCash logo">
+                <div>
+                    <strong>MotorCash</strong>
+                    <span>Lucro real. Decisão inteligente.</span>
+                </div>
+            </a>
+
+            {% if current_user %}
+            <nav class="menu">
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('shift_day') }}">Iniciar/Finalizar dia</a>
+                <a href="{{ url_for('incomes') }}">Ganhos</a>
+                <a href="{{ url_for('expenses') }}">Gastos</a>
+                <a href="{{ url_for('goals') }}">Metas</a>
+                <a href="{{ url_for('reports') }}">Relatórios</a>
+                <a href="{{ url_for('plans_page') }}">Planos</a>
+                <a href="{{ url_for('profile') }}">Perfil</a>
+                <a href="{{ url_for('logout') }}">Sair</a>
+            </nav>
+            <div class="sidebar-card">
+                <p>Plano atual</p>
+                <h3>{{ plans[current_user.plan].name }}</h3>
+                <span>{{ plans[current_user.plan].price }}</span>
+            </div>
+            {% else %}
+            <nav class="menu">
+                <a href="{{ url_for('landing') }}">Início</a>
+                <a href="{{ url_for('login') }}">Entrar</a>
+                <a href="{{ url_for('register') }}">Criar conta</a>
+            </nav>
+            {% endif %}
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow">SaaS para motoristas de aplicativo</p>
+                    <h1>{% block page_title %}MotorCash{% endblock %}</h1>
+                </div>
+                {% if current_user %}
+                <div class="topbar-actions">
+                    <span class="pill">{{ current_user.name }}</span>
+                    <span class="pill pill-highlight">{{ plans[current_user.plan].name }}</span>
+                </div>
+                {% endif %}
+            </header>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="alerts">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

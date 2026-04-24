@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Criar conta | MotorCash{% endblock %}
+{% block page_title %}Crie sua conta{% endblock %}
+{% block content %}
+<form class="card form-card wide" method="post">
+    <h2>Cadastro do motorista</h2>
+    <div class="form-grid">
+        <label>Nome completo
+            <input type="text" name="name" required>
+        </label>
+        <label>E-mail
+            <input type="email" name="email" required>
+        </label>
+        <label>Telefone
+            <input type="text" name="phone">
+        </label>
+        <label>Cidade
+            <input type="text" name="city">
+        </label>
+        <label>Senha
+            <input type="password" name="password" required>
+        </label>
+        <label>Tipo de veículo
+            <input type="text" name="vehicle_type" value="Carro">
+        </label>
+        <label>Plataforma principal
+            <select name="main_platform">
+                {% for platform in platforms %}
+                <option value="{{ platform }}">{{ platform }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>Meta diária de lucro
+            <input type="number" step="0.01" name="daily_goal" value="300">
+        </label>
+        <label>Meta semanal de lucro
+            <input type="number" step="0.01" name="weekly_goal" value="1800">
+        </label>
+        <label>Meta mensal de lucro
+            <input type="number" step="0.01" name="monthly_goal" value="7200">
+        </label>
+        <label>Consumo médio km/l
+            <input type="number" step="0.01" name="fuel_consumption_km_l" value="10">
+        </label>
+        <label>Custo fixo mensal
+            <input type="number" step="0.01" name="fixed_cost_monthly" value="0">
+        </label>
+        <label>Reserva mensal manutenção
+            <input type="number" step="0.01" name="maintenance_reserve_monthly" value="0">
+        </label>
+        <label>Reserva fiscal %
+            <input type="number" step="0.01" name="tax_reserve_pct" value="0">
+        </label>
+    </div>
+    <button class="btn btn-primary" type="submit">Criar conta</button>
+</form>
+{% endblock %}
