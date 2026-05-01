@@ -1,0 +1,25 @@
+Nome do app: MotorCash
+
+Descrição curta:
+Controle ganhos, gastos e lucro real como motorista de aplicativo.
+
+Descrição completa:
+O MotorCash é o app para motoristas de aplicativo e entregadores que querem saber quanto realmente estão lucrando.
+
+Controle sua jornada, ganhos, gastos, metas e lucro líquido em poucos segundos por dia.
+
+Com o MotorCash você pode:
+- iniciar o dia informando o KM inicial
+- finalizar o dia informando o KM final
+- registrar ganhos de Uber, 99, inDrive, entregas e particulares
+- controlar gastos com combustível, manutenção, seguro, alimentação, pedágio e outros
+- acompanhar lucro diário, semanal e mensal
+- visualizar ganho por hora, ganho por km, lucro por hora e lucro por km
+- definir metas e acompanhar sua evolução
+
+Planos:
+Essencial: R$ 9,90/mês
+Profissional: R$ 19,90/mês
+Premium: R$ 29,90/mês
+
+O MotorCash não possui versão grátis.

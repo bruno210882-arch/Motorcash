@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Perfil | MotorCash{% endblock %}
+{% block page_title %}Perfil do motorista{% endblock %}
+{% block content %}
+<form class="card form-card wide" method="post">
+    <h2>Dados do usuário</h2>
+    <div class="form-grid">
+        <label>Nome
+            <input type="text" name="name" value="{{ current_user.name }}">
+        </label>
+        <label>E-mail
+            <input type="email" value="{{ current_user.email }}" disabled>
+        </label>
+        <label>Telefone
+            <input type="text" name="phone" value="{{ current_user.phone or '' }}">
+        </label>
+        <label>Cidade
+            <input type="text" name="city" value="{{ current_user.city or '' }}">
+        </label>
+        <label>Tipo de veículo
+            <input type="text" name="vehicle_type" value="{{ current_user.vehicle_type }}">
+        </label>
+        <label>Plataforma principal
+            <select name="main_platform">
+                {% for platform in platforms %}
+                <option value="{{ platform }}" {% if current_user.main_platform == platform %}selected{% endif %}>{{ platform }}</option>
+                {% endfor %}
+            </select>
+        </label>
+    </div>
+    <button class="btn btn-primary" type="submit">Salvar perfil</button>
+</form>
+{% endblock %}

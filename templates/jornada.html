@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Jornada | MotorCash{% endblock %}
+{% block page_title %}Iniciar e finalizar dia{% endblock %}
+{% block content %}
+<section class="two-col">
+    <article class="card form-card">
+        {% if shift and shift.is_open %}
+        <h2>Finalizar dia</h2>
+        <p class="muted">Iniciado às {{ shift.start_time.strftime('%H:%M') }} com KM inicial {{ '%.0f'|format(shift.start_km) }}.</p>
+        <form method="post">
+            <input type="hidden" name="action" value="finish">
+            <label>KM final do veículo
+                <input type="number" step="0.1" name="end_km" required placeholder="Ex: 125430">
+            </label>
+            <button class="btn btn-primary" type="submit">Finalizar dia</button>
+        </form>
+        {% else %}
+        <h2>Iniciar dia</h2>
+        <p class="muted">Informe o KM atual do veículo. A hora inicial será registrada automaticamente.</p>
+        <form method="post">
+            <input type="hidden" name="action" value="start">
+            <label>KM inicial do veículo
+                <input type="number" step="0.1" name="start_km" required placeholder="Ex: 125120">
+            </label>
+            <button class="btn btn-primary" type="submit">Iniciar dia</button>
+        </form>
+        {% endif %}
+    </article>
+
+    <article class="card">
+        <h2>Como funciona</h2>
+        <ul class="clean-list">
+            <li>Ao abrir o app pela primeira vez no dia, clique em <strong>Iniciar dia</strong> e informe o KM atual.</li>
+            <li>O app registra a hora inicial automaticamente.</li>
+            <li>No fim do expediente, informe o KM final.</li>
+            <li>O app calcula automaticamente KM rodados e horas trabalhadas.</li>
+        </ul>
+    </article>
+</section>
+
+<section class="card">
+    <h2>Últimas jornadas</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Início</th>
+                    <th>Fim</th>
+                    <th>KM inicial</th>
+                    <th>KM final</th>
+                    <th>KM rodados</th>
+                    <th>Horas</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in history %}
+                <tr>
+                    <td>{{ item.shift_date.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ item.start_time.strftime('%H:%M') }}</td>
+                    <td>{{ item.end_time.strftime('%H:%M') if item.end_time else 'Aberto' }}</td>
+                    <td>{{ '%.0f'|format(item.start_km) }}</td>
+                    <td>{{ '%.0f'|format(item.end_km) if item.end_km is not none else '-' }}</td>
+                    <td>{{ '%.1f'|format(item.km_total) }}</td>
+                    <td>{{ '%.2f'|format(item.hours_total) }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7">Nenhuma jornada registrada ainda.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

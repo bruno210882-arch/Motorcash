@@ -1,0 +1,24 @@
+COMANDOS PARA GERAR APK/AAB VIA BUBBLEWRAP
+
+1. Instalar Node.js
+2. Instalar Bubblewrap:
+
+npm install -g @bubblewrap/cli
+
+3. Iniciar projeto Android a partir do app online:
+
+bubblewrap init --manifest=https://SEU-APP.onrender.com/manifest.json
+
+Sugestões:
+Nome: MotorCash
+Package: com.motorcash.app
+Launcher name: MotorCash
+Theme color: #0b1220
+
+4. Gerar pacote:
+
+bubblewrap build
+
+5. Subir o AAB/APK no Google Play Console.
+
+Observação: para TWA final, configure o assetlinks.json com a assinatura gerada no build.

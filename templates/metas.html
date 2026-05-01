@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Metas | MotorCash{% endblock %}
+{% block page_title %}Metas e reservas{% endblock %}
+{% block content %}
+<section class="two-col">
+    <form class="card form-card" method="post">
+        <h2>Configurações financeiras</h2>
+        <label>Meta diária de lucro
+            <input type="number" step="0.01" name="daily_goal" value="{{ goal.daily_goal }}">
+        </label>
+        <label>Meta semanal de lucro
+            <input type="number" step="0.01" name="weekly_goal" value="{{ goal.weekly_goal }}">
+        </label>
+        <label>Meta mensal de lucro
+            <input type="number" step="0.01" name="monthly_goal" value="{{ goal.monthly_goal }}">
+        </label>
+        <label>Consumo médio km/l
+            <input type="number" step="0.01" name="fuel_consumption_km_l" value="{{ goal.fuel_consumption_km_l }}">
+        </label>
+        <label>Custo fixo mensal
+            <input type="number" step="0.01" name="fixed_cost_monthly" value="{{ goal.fixed_cost_monthly }}">
+        </label>
+        <label>Reserva mensal manutenção{% if not current_user.is_pro %} <span class="locked">Pro</span>{% endif %}
+            <input type="number" step="0.01" name="maintenance_reserve_monthly" value="{{ goal.maintenance_reserve_monthly }}" {% if not current_user.is_pro %}disabled{% endif %}>
+        </label>
+        <label>Reserva fiscal %{% if not current_user.is_premium %} <span class="locked">Premium</span>{% endif %}
+            <input type="number" step="0.01" name="tax_reserve_pct" value="{{ goal.tax_reserve_pct }}" {% if not current_user.is_premium %}disabled{% endif %}>
+        </label>
+        <button class="btn btn-primary" type="submit">Salvar metas</button>
+    </form>
+
+    <div class="card">
+        <h2>Visão rápida</h2>
+        <ul class="clean-list">
+            <li>Meta diária <span>R$ {{ '%.2f'|format(metrics.daily_goal) }}</span></li>
+            <li>Meta semanal <span>R$ {{ '%.2f'|format(metrics.weekly_goal) }}</span></li>
+            <li>Meta mensal <span>R$ {{ '%.2f'|format(metrics.monthly_goal) }}</span></li>
+            <li>Custo fixo mensal <span>R$ {{ '%.2f'|format(metrics.fixed_cost_monthly) }}</span></li>
+            <li>Reserva manutenção <span>R$ {{ '%.2f'|format(metrics.maintenance_reserve) }}</span></li>
+            <li>Reserva fiscal sugerida <span>R$ {{ '%.2f'|format(metrics.suggested_tax_reserve) }}</span></li>
+        </ul>
+    </div>
+</section>
+{% endblock %}

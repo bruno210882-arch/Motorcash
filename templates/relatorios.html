@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Relatórios | MotorCash{% endblock %}
+{% block page_title %}Relatórios gerenciais{% endblock %}
+{% block content %}
+<section class="three-col">
+    <article class="card">
+        <h3>Hoje</h3>
+        <ul class="clean-list">
+            <li>Ganhos <span>R$ {{ '%.2f'|format(metrics.income_today) }}</span></li>
+            <li>Gastos <span>R$ {{ '%.2f'|format(metrics.expense_today) }}</span></li>
+            <li>Lucro <span>R$ {{ '%.2f'|format(metrics.profit_today) }}</span></li>
+        </ul>
+    </article>
+    <article class="card">
+        <h3>Semana</h3>
+        <ul class="clean-list">
+            <li>Ganhos <span>R$ {{ '%.2f'|format(metrics.income_week) }}</span></li>
+            <li>Gastos <span>R$ {{ '%.2f'|format(metrics.expense_week) }}</span></li>
+            <li>Lucro <span>R$ {{ '%.2f'|format(metrics.profit_week) }}</span></li>
+        </ul>
+    </article>
+    <article class="card">
+        <h3>Mês</h3>
+        <ul class="clean-list">
+            <li>Ganhos <span>R$ {{ '%.2f'|format(metrics.income_month) }}</span></li>
+            <li>Gastos <span>R$ {{ '%.2f'|format(metrics.expense_month) }}</span></li>
+            <li>Lucro <span>R$ {{ '%.2f'|format(metrics.profit_month) }}</span></li>
+        </ul>
+    </article>
+</section>
+
+<section class="two-col">
+    <article class="card">
+        <h3>Distribuição por plataforma</h3>
+        <ul class="clean-list">
+            {% for platform, value in metrics.by_platform.items() %}
+            <li>{{ platform }} <span>R$ {{ '%.2f'|format(value) }}</span></li>
+            {% else %}
+            <li>Sem dados ainda.</li>
+            {% endfor %}
+        </ul>
+    </article>
+    <article class="card">
+        <h3>Distribuição por categoria</h3>
+        <ul class="clean-list">
+            {% for category, value in metrics.by_category.items() %}
+            <li>{{ category }} <span>R$ {{ '%.2f'|format(value) }}</span></li>
+            {% else %}
+            <li>Sem dados ainda.</li>
+            {% endfor %}
+        </ul>
+    </article>
+</section>
+
+<section class="card">
+    <h3>Recursos comerciais</h3>
+    <p>Essa tela já serve como base para um PDF profissional. O próximo passo é integrar exportação PDF com sua identidade visual e envio por WhatsApp ou e-mail.</p>
+</section>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Ganhos | MotorCash{% endblock %}
+{% block page_title %}Controle seus ganhos{% endblock %}
+{% block content %}
+<section class="two-col">
+    <form class="card form-card" method="post">
+        <h2>Novo ganho</h2>
+        <label>Plataforma
+            <select name="platform">
+                {% for platform in platforms %}
+                <option value="{{ platform }}">{{ platform }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>Descrição
+            <input type="text" name="description" placeholder="Turno da manhã, corrida particular, etc.">
+        </label>
+        <label>Valor
+            <input type="number" step="0.01" name="amount" required>
+        </label>
+        <input type="hidden" name="km" value="0">
+        <input type="hidden" name="hours" value="0">
+        <p class="muted">KM e horas agora são calculados automaticamente pela tela <strong>Iniciar/Finalizar dia</strong>.</p>
+        <label>Data
+            <input type="date" name="entry_date" value="{{ today }}">
+        </label>
+        <button class="btn btn-primary" type="submit">Salvar ganho</button>
+    </form>
+
+    <div class="card">
+        <h2>Histórico</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Plataforma</th>
+                        <th>Valor</th>
+                        <th>Km</th>
+                        <th>Horas</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in entries %}
+                    <tr>
+                        <td>{{ entry.entry_date.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ entry.platform }}</td>
+                        <td>R$ {{ '%.2f'|format(entry.amount) }}</td>
+                        <td>{{ '%.2f'|format(entry.km) }}</td>
+                        <td>{{ '%.2f'|format(entry.hours) }}</td>
+                        <td>
+                            <form method="post" action="{{ url_for('delete_entry', kind='income', entry_id=entry.id) }}">
+                                <button class="btn-link" type="submit">Excluir</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6">Nenhum ganho cadastrado.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

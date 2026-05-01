@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard | MotorCash{% endblock %}
+{% block page_title %}Seu painel financeiro{% endblock %}
+{% block content %}
+<section class="card jornada-card">
+    <div class="section-head">
+        <div>
+            <h3>Controle de jornada</h3>
+            {% if metrics.shift_is_open %}
+            <p class="muted">Dia iniciado às {{ metrics.shift_started_at.strftime('%H:%M') }} com KM inicial {{ '%.0f'|format(metrics.shift_start_km) }}.</p>
+            {% else %}
+            <p class="muted">Inicie o dia informando o KM atual. O app registra a hora automaticamente.</p>
+            {% endif %}
+        </div>
+        <a class="btn btn-primary" href="{{ url_for('shift_day') }}">{{ 'Finalizar dia' if metrics.shift_is_open else 'Iniciar dia' }}</a>
+    </div>
+</section>
+
+<section class="stats-grid">
+    <article class="metric-card positive">
+        <span>Lucro hoje</span>
+        <strong>R$ {{ '%.2f'|format(metrics.profit_today) }}</strong>
+        <small>Meta diária: R$ {{ '%.2f'|format(metrics.daily_goal) }}</small>
+    </article>
+    <article class="metric-card neutral">
+        <span>Ganhos hoje</span>
+        <strong>R$ {{ '%.2f'|format(metrics.income_today) }}</strong>
+        <small>{{ '%.2f'|format(metrics.total_hours_today) }} h trabalhadas</small>
+    </article>
+    <article class="metric-card negative">
+        <span>Gastos hoje</span>
+        <strong>R$ {{ '%.2f'|format(metrics.expense_today) }}</strong>
+        <small>{{ '%.2f'|format(metrics.total_km_today) }} km rodados</small>
+    </article>
+    <article class="metric-card premium-card">
+        <span>Lucro mês após reservas</span>
+        <strong>R$ {{ '%.2f'|format(metrics.real_month_profit_after_reserves) }}</strong>
+        <small>Plano {{ current_user.plan|capitalize }}</small>
+    </article>
+</section>
+
+<section class="two-col">
+    <article class="card">
+        <div class="section-head">
+            <h3>Indicadores de hoje</h3>
+            <div class="cta-row small-gap">
+                <a class="btn btn-secondary" href="{{ url_for('incomes') }}">Novo ganho</a>
+                <a class="btn btn-secondary" href="{{ url_for('expenses') }}">Novo gasto</a>
+            </div>
+        </div>
+        <div class="compact-grid">
+            <div class="mini-stat"><strong>R$ {{ '%.2f'|format(metrics.income_per_hour_today) }}</strong><span>Ganho por hora</span></div>
+            <div class="mini-stat"><strong>R$ {{ '%.2f'|format(metrics.income_per_km_today) }}</strong><span>Ganho por km</span></div>
+            <div class="mini-stat"><strong>R$ {{ '%.2f'|format(metrics.profit_per_hour_today) }}</strong><span>Lucro por hora</span></div>
+            <div class="mini-stat"><strong>R$ {{ '%.2f'|format(metrics.profit_per_km_today) }}</strong><span>Lucro por km</span></div>
+        </div>
+
+        <div class="progress-list">
+            <div>
+                <div class="progress-header"><span>Meta diária</span><span>{{ metrics.daily_goal_progress }}%</span></div>
+                <div class="progress"><div style="width: {{ metrics.daily_goal_progress }}%"></div></div>
+            </div>
+            <div>
+                <div class="progress-header"><span>Meta semanal</span><span>{{ metrics.weekly_goal_progress }}%</span></div>
+                <div class="progress"><div style="width: {{ metrics.weekly_goal_progress }}%"></div></div>
+            </div>
+            <div>
+                <div class="progress-header"><span>Meta mensal</span><span>{{ metrics.monthly_goal_progress }}%</span></div>
+                <div class="progress"><div style="width: {{ metrics.monthly_goal_progress }}%"></div></div>
+            </div>
+        </div>
+    </article>
+
+    <article class="card">
+        <h3>Insights</h3>
+        <ul class="clean-list">
+            {% for insight in metrics.insights %}
+            <li>{{ insight }}</li>
+            {% else %}
+            <li>Cadastre seus primeiros ganhos e gastos para ver recomendações automáticas.</li>
+            {% endfor %}
+        </ul>
+    </article>
+</section>
+
+<section class="two-col">
+    <article class="card">
+        <h3>Últimos 7 dias</h3>
+        <div class="bars">
+            {% for point in metrics.daily_points %}
+            <div class="bar-group">
+                <div class="bar-stack">
+                    <div class="bar income-bar" style="height: {{ [point.income / 5, 8]|max }}px"></div>
+                    <div class="bar expense-bar" style="height: {{ [point.expense / 5, 6]|max }}px"></div>
+                    <div class="bar profit-bar" style="height: {{ [point.profit / 5 if point.profit > 0 else 4, 4]|max }}px"></div>
+                </div>
+                <span>{{ point.label }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        <p class="legend">Verde = ganhos, vermelho = gastos, azul = lucro.</p>
+    </article>
+
+    <article class="card">
+        <h3>Resumo do mês</h3>
+        <div class="compact-grid">
+            <div class="mini-stat"><strong>R$ {{ '%.2f'|format(metrics.income_month) }}</strong><span>Ganhos</span></div>
+            <div class="mini-stat"><strong>R$ {{ '%.2f'|format(metrics.expense_month) }}</strong><span>Gastos</span></div>
+            <div class="mini-stat"><strong>{{ '%.2f'|format(metrics.total_km_month) }} km</strong><span>Km rodados</span></div>
+            <div class="mini-stat"><strong>{{ '%.2f'|format(metrics.total_hours_month) }} h</strong><span>Horas</span></div>
+        </div>
+        <h4>Ganhos por plataforma</h4>
+        <ul class="clean-list">
+            {% for platform, value in metrics.by_platform.items() %}
+            <li>{{ platform }} <span>R$ {{ '%.2f'|format(value) }}</span></li>
+            {% else %}
+            <li>Nenhum ganho lançado ainda.</li>
+            {% endfor %}
+        </ul>
+        <h4>Gastos por categoria</h4>
+        <ul class="clean-list">
+            {% for category, value in metrics.by_category.items() %}
+            <li>{{ category }} <span>R$ {{ '%.2f'|format(value) }}</span></li>
+            {% else %}
+            <li>Nenhum gasto lançado ainda.</li>
+            {% endfor %}
+        </ul>
+    </article>
+</section>
+
+{% if announcements %}
+<section class="card">
+    <h3>Mensagens do produto</h3>
+    <div class="announcement-grid">
+        {% for item in announcements %}
+        <div class="announcement-item">
+            <strong>{{ item.title }}</strong>
+            <p>{{ item.body }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+{% endblock %}
