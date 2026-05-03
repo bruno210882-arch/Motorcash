@@ -246,7 +246,7 @@ def create_app() -> Flask:
     @app.route("/")
     def index():
         if not is_logged_in():
-            return redirect(url_for("login"))
+        return redirect(url_for("login"))
         return redirect(url_for("dashboard"))
 
     @app.route("/landing")
