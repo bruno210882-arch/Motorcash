@@ -1,67 +1,35 @@
-{% extends 'base.html' %}
-{% block title %}Criar conta | MotorCash{% endblock %}
-{% block page_title %}Crie sua conta{% endblock %}
+{% extends "base.html" %}
+
 {% block content %}
-<form class="card form-card wide" method="post">
-    <h2>Cadastro do motorista</h2>
-    <div class="form-grid">
-        <label>Nome completo
-            <input type="text" name="name" required>
-        </label>
-        <label>E-mail
-            <input type="email" name="email" required>
-        </label>
-        <label>Telefone
-            <input type="text" name="phone">
-        </label>
-        <label>Cidade
-            <input type="text" name="city">
-        </label>
-        <label>Senha
-            <input type="password" name="password" required>
-        </label>
-        <label>Tipo de veículo
-            <input type="text" name="vehicle_type" value="Carro">
-        </label>
-        <label>Plataforma principal
-            <select name="main_platform">
-                {% for platform in platforms %}
-                <option value="{{ platform }}">{{ platform }}</option>
-                {% endfor %}
-            </select>
-        </label>
-        <label>Meta diária de lucro
-            <input type="number" step="0.01" name="daily_goal" value="300">
-        </label>
-        <label>Meta semanal de lucro
-            <input type="number" step="0.01" name="weekly_goal" value="1800">
-        </label>
-        <label>Meta mensal de lucro
-            <input type="number" step="0.01" name="monthly_goal" value="7200">
-        </label>
-        <label>Consumo médio km/l
-            <input type="number" step="0.01" name="fuel_consumption_km_l" value="10">
-        </label>
-        <label>Custo fixo mensal
-            <input type="number" step="0.01" name="fixed_cost_monthly" value="0">
-        </label>
-        <label>Reserva mensal manutenção
-            <input type="number" step="0.01" name="maintenance_reserve_monthly" value="0">
-        </label>
-        <label>Reserva fiscal %
-            <input type="number" step="0.01" name="tax_reserve_pct" value="0">
-        </label>
-        <label>Plano desejado
-            <select name="plan">
-                <option value="basic">Essencial - R$ 9,90/mês</option>
-                <option value="pro">Profissional - R$ 19,90/mês</option>
-                <option value="premium">Premium - R$ 29,90/mês</option>
-            </select>
-	<label>Voucher (opcional)</label>
-	<input type="text" name="voucher" class="form-control">
-        </label>
-    </div>
-    <p class="muted">Não há versão grátis. Após o cadastro, conecte sua cobrança real para ativação automática do plano.</p>
-    <button class="btn btn-primary" type="submit">Criar conta e escolher plano</button>
+
+<h2>Criar Conta</h2>
+
+<div class="card">
+
+<form method="POST">
+
+<input class="input" name="name" placeholder="Seu nome" required>
+
+<input class="input" type="email" name="email" placeholder="E-mail" required>
+
+<input class="input" type="password" name="password" placeholder="Senha" required>
+
+<select class="input" name="plan">
+    <option value="basic">Essencial - R$ 9,90</option>
+    <option value="pro">Profissional - R$ 19,90</option>
+    <option value="premium">Premium - R$ 29,90</option>
+</select>
+
+<input class="input" name="voucher" placeholder="Voucher (opcional)">
+
+<button class="btn">Criar Conta</button>
+
 </form>
+
+</div>
+
+<p style="margin-top:15px;">
+Já tem conta? <a href="/login">Entrar</a>
+</p>
+
 {% endblock %}
