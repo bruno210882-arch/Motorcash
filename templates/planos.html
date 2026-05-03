@@ -1,27 +1,7 @@
-{% extends 'base.html' %}
-{% block title %}Planos | MotorCash{% endblock %}
-{% block page_title %}Planos do produto{% endblock %}
+{% extends "base.html" %}
 {% block content %}
-<section class="pricing-grid">
-    {% for key, plan in plans.items() %}
-    <form class="card pricing-card {% if current_user.plan == key %}active-plan{% endif %}" method="post">
-        <input type="hidden" name="plan" value="{{ key }}">
-        <h3>{{ plan.name }}</h3>
-        <div class="price">{{ plan.price }}</div>
-        <ul class="clean-list">
-            {% for feature in plan.features %}
-            <li>{{ feature }}</li>
-            {% endfor %}
-        </ul>
-        <button class="btn {% if current_user.plan == key %}btn-secondary{% else %}btn-primary{% endif %}" type="submit">
-            {% if current_user.plan == key %}Plano ativo{% else %}Selecionar plano{% endif %}
-        </button>
-    </form>
-    {% endfor %}
-</section>
-
-<section class="card">
-    <h3>Próximo passo comercial</h3>
-    <p>Esta versão não possui plano grátis. Troque o seletor de demonstração pela integração real com Mercado Pago, Stripe ou Asaas para cobrar R,90, R,90 e R,90/mês automaticamente.</p>
-</section>
+<h2>Planos</h2>
+<a href="/criar_pagamento/basico" class="btn">R$9,90</a>
+<a href="/criar_pagamento/pro" class="btn">R$19,90</a>
+<a href="/criar_pagamento/premium" class="btn">R$29,90</a>
 {% endblock %}
