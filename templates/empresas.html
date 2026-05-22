@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Empresas | MotorCash{% endblock %}
+{% block page_title %}Empresas e plataformas{% endblock %}
+{% block content %}
+<section class="two-col">
+    <form class="card form-card" method="post">
+        <h2>Nova empresa/plataforma</h2>
+        <p class="muted">Cadastre empresas diferentes quando você trabalha para mais de uma no mesmo dia. Depois basta clicar na empresa ao lançar o ganho.</p>
+        <label>Nome
+            <input name="name" placeholder="Ex: Uber, 99, Empresa X, Particular" required>
+        </label>
+        <label>Categoria
+            <select name="category">
+                <option>Aplicativo</option>
+                <option>Entrega</option>
+                <option>Particular</option>
+                <option>Frota/Empresa</option>
+                <option>Outro</option>
+            </select>
+        </label>
+        <label>URL da logo (opcional)
+            <input name="logo_url" placeholder="https://.../logo.png">
+        </label>
+        <button class="btn btn-primary" type="submit">Adicionar empresa</button>
+    </form>
+
+    <div class="card">
+        <h2>Empresas disponíveis</h2>
+        <div class="company-grid">
+            {% for company in companies %}
+            <div class="company-card {% if not company.is_active %}inactive{% endif %}">
+                <span class="company-logo big">
+                    {% if company.logo_url %}
+                    <img src="{{ company.logo_url }}" alt="{{ company.name }}">
+                    {% else %}
+                    {{ company.name[:2].upper() }}
+                    {% endif %}
+                </span>
+                <div>
+                    <strong>{{ company.name }}</strong>
+                    <small>{{ company.category }}{% if not company.user_id %} · padrão{% endif %}</small>
+                </div>
+                {% if company.user_id %}
+                <form method="post" action="{{ url_for('toggle_company', company_id=company.id) }}">
+                    <button class="btn btn-secondary" type="submit">{{ 'Ativar' if not company.is_active else 'Desativar' }}</button>
+                </form>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

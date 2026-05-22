@@ -109,10 +109,10 @@
             <div class="mini-stat"><strong>{{ '%.2f'|format(metrics.total_km_month) }} km</strong><span>Km rodados</span></div>
             <div class="mini-stat"><strong>{{ '%.2f'|format(metrics.total_hours_month) }} h</strong><span>Horas</span></div>
         </div>
-        <h4>Ganhos por plataforma</h4>
+        <h4>Ganhos por empresa</h4>
         <ul class="clean-list">
-            {% for platform, value in metrics.by_platform.items() %}
-            <li>{{ platform }} <span>R$ {{ '%.2f'|format(value) }}</span></li>
+            {% for company, value in metrics.by_company.items() %}
+            <li>{{ company }} <span>R$ {{ '%.2f'|format(value) }}</span></li>
             {% else %}
             <li>Nenhum ganho lançado ainda.</li>
             {% endfor %}
@@ -123,6 +123,37 @@
             <li>{{ category }} <span>R$ {{ '%.2f'|format(value) }}</span></li>
             {% else %}
             <li>Nenhum gasto lançado ainda.</li>
+            {% endfor %}
+        </ul>
+    </article>
+</section>
+
+
+<section class="two-col">
+    <article class="card">
+        <div class="section-head">
+            <h3>Multiempresas</h3>
+            <a class="btn btn-secondary" href="{{ url_for('companies_page') }}">Gerenciar</a>
+        </div>
+        <p class="muted">Controle ganhos separados por Uber, 99, inDrive, entregas, corridas particulares ou qualquer empresa onde você trabalhe no mesmo dia.</p>
+        <ul class="clean-list">
+            {% for company, value in metrics.by_company.items() %}
+            <li>{{ company }} <span>R$ {{ '%.2f'|format(value) }}</span></li>
+            {% else %}
+            <li>Cadastre ganhos para ver o ranking por empresa.</li>
+            {% endfor %}
+        </ul>
+    </article>
+    <article class="card">
+        <div class="section-head">
+            <h3>Manutenção inteligente</h3>
+            <a class="btn btn-secondary" href="{{ url_for('maintenance_page') }}">Alertas</a>
+        </div>
+        <ul class="clean-list">
+            {% for alert in metrics.maintenance_alerts %}
+            <li>{{ alert }}</li>
+            {% else %}
+            <li>Nenhum alerta de manutenção vencido ou próximo.</li>
             {% endfor %}
         </ul>
     </article>

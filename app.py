@@ -16,7 +16,7 @@ from flask import (
     url_for,
 )
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func
+from sqlalchemy import func, inspect, text
 from werkzeug.security import check_password_hash, generate_password_hash
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -40,7 +40,8 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     vehicle_type = db.Column(db.String(50), default="Carro")
     main_platform = db.Column(db.String(50), default="Uber")
-    plan = db.Column(db.String(20), default="free")
+    plan = db.Column(db.String(20), default="basic")
+    plan_expires_at = db.Column(db.DateTime)
     city = db.Column(db.String(80))
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -49,6 +50,8 @@ class User(db.Model):
     entries = db.relationship("IncomeEntry", backref="user", cascade="all, delete-orphan")
     expenses = db.relationship("ExpenseEntry", backref="user", cascade="all, delete-orphan")
     shifts = db.relationship("DailyShift", backref="user", cascade="all, delete-orphan")
+    companies = db.relationship("Company", backref="user", cascade="all, delete-orphan")
+    maintenance_items = db.relationship("MaintenanceItem", backref="user", cascade="all, delete-orphan")
 
     def set_password(self, raw_password: str) -> None:
         self.password_hash = generate_password_hash(raw_password)
@@ -57,12 +60,16 @@ class User(db.Model):
         return check_password_hash(self.password_hash, raw_password)
 
     @property
+    def plan_is_active(self) -> bool:
+        return self.plan_expires_at is None or self.plan_expires_at >= datetime.utcnow()
+
+    @property
     def is_pro(self) -> bool:
-        return self.plan in {"pro", "premium"}
+        return self.plan in {"pro", "premium"} and self.plan_is_active
 
     @property
     def is_premium(self) -> bool:
-        return self.plan == "premium"
+        return self.plan == "premium" and self.plan_is_active
 
 
 class Goal(db.Model):
@@ -77,9 +84,49 @@ class Goal(db.Model):
     tax_reserve_pct = db.Column(db.Float, default=0.0)
 
 
+class Voucher(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    codigo = db.Column(db.String(50), unique=True, nullable=False, index=True)
+    plan = db.Column(db.String(20), default="premium")
+    days = db.Column(db.Integer, default=180)
+    usado = db.Column(db.Boolean, default=False)
+    usado_por_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    usado_em = db.Column(db.DateTime)
+    criado_em = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+
+class Company(db.Model):
+    """Empresa/plataforma em que o motorista trabalha.
+
+    user_id nulo = empresa padrão global disponível para todos.
+    user_id preenchido = empresa personalizada do motorista.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True, index=True)
+    name = db.Column(db.String(80), nullable=False)
+    logo_url = db.Column(db.String(255), default="")
+    category = db.Column(db.String(40), default="Aplicativo")
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class MaintenanceItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(180), default="")
+    due_km = db.Column(db.Float)
+    due_date = db.Column(db.Date)
+    status = db.Column(db.String(20), default="aberto")
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
 class IncomeEntry(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
+    company_id = db.Column(db.Integer, db.ForeignKey("company.id"), nullable=True, index=True)
+    company = db.relationship("Company")
     platform = db.Column(db.String(50), nullable=False)
     description = db.Column(db.String(150), default="")
     amount = db.Column(db.Float, nullable=False)
@@ -136,6 +183,15 @@ class Announcement(db.Model):
 
 
 PLATFORMS = ["Uber", "99", "inDrive", "Particular", "Entrega", "Outro"]
+
+DEFAULT_COMPANIES = [
+    {"name": "Uber", "category": "Aplicativo", "logo_url": "https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png"},
+    {"name": "99", "category": "Aplicativo", "logo_url": "https://upload.wikimedia.org/wikipedia/commons/8/8f/99app_logo.png"},
+    {"name": "inDrive", "category": "Aplicativo", "logo_url": "https://upload.wikimedia.org/wikipedia/commons/9/9f/InDrive_Logo.png"},
+    {"name": "Particular", "category": "Particular", "logo_url": ""},
+    {"name": "Entrega", "category": "Entrega", "logo_url": ""},
+]
+
 EXPENSE_CATEGORIES = [
     "Combustível",
     "Manutenção",
@@ -147,34 +203,40 @@ EXPENSE_CATEGORIES = [
     "Outros",
 ]
 PLANS = {
-    "free": {
-        "name": "Free",
-        "price": "R$ 0",
+    "basic": {
+        "name": "Essencial",
+        "price": "R$ 9,90/mês",
         "features": [
-            "Dashboard básico",
-            "Lançamentos manuais",
-            "Resumo diário",
+            "Dashboard financeiro diário",
+            "Jornada automática com KM e horas",
+            "Ganhos e gastos ilimitados",
+            "Resumo de lucro real",
         ],
     },
     "pro": {
-        "name": "Pro",
+        "name": "Profissional",
         "price": "R$ 19,90/mês",
         "features": [
-            "Relatórios completos",
-            "Metas e indicadores",
+            "Tudo do Essencial",
+            "Metas diária, semanal e mensal",
+            "Indicadores por KM e por hora",
             "Reserva de manutenção",
+            "Relatórios avançados",
         ],
     },
     "premium": {
         "name": "Premium",
         "price": "R$ 29,90/mês",
         "features": [
-            "Insights avançados",
-            "Reserva de imposto",
+            "Tudo do Profissional",
+            "Insights inteligentes",
+            "Voucher de teste premium por 6 meses",
+            "Reserva de imposto configurável",
             "Prioridade no suporte",
         ],
     },
 }
+
 
 
 def create_app() -> Flask:
@@ -201,6 +263,26 @@ def create_app() -> Flask:
     def service_worker():
         return send_from_directory(os.path.join(BASE_DIR, "static"), "service-worker.js", mimetype="application/javascript")
 
+    @app.route("/admin/criar-vouchers")
+    def criar_vouchers():
+        ensure_schema()
+        codigos = ["MOTORVIP1", "MOTORVIP2", "MOTORVIP3"]
+        criados = []
+        existentes = []
+        for codigo in codigos:
+            if Voucher.query.filter_by(codigo=codigo).first():
+                existentes.append(codigo)
+                continue
+            db.session.add(Voucher(codigo=codigo, plan="premium", days=180))
+            criados.append(codigo)
+        db.session.commit()
+        return (
+            "Vouchers premium de 6 meses configurados.<br>"
+            f"Criados agora: {', '.join(criados) if criados else 'nenhum'}<br>"
+            f"Já existiam: {', '.join(existentes) if existentes else 'nenhum'}<br>"
+            "Códigos: MOTORVIP1, MOTORVIP2, MOTORVIP3"
+        )
+
     @app.route("/")
     def index():
         if not is_logged_in():
@@ -216,12 +298,26 @@ def create_app() -> Flask:
     def register():
         if request.method == "POST":
             email = request.form.get("email", "").strip().lower()
-            if not email or not request.form.get("password") or not request.form.get("name"):
+            password = request.form.get("password", "")
+            selected_plan = request.form.get("plan", "basic")
+            selected_plan = selected_plan if selected_plan in PLANS else "basic"
+
+            if not email or not password or not request.form.get("name"):
                 flash("Preencha nome, e-mail e senha.", "danger")
                 return redirect(url_for("register"))
             if User.query.filter_by(email=email).first():
                 flash("Esse e-mail já está cadastrado.", "warning")
                 return redirect(url_for("register"))
+
+            voucher_codigo = request.form.get("voucher", "").strip().upper()
+            voucher = None
+            if voucher_codigo:
+                voucher = Voucher.query.filter_by(codigo=voucher_codigo, usado=False).first()
+                if not voucher:
+                    flash("Voucher inválido ou já utilizado.", "danger")
+                    return redirect(url_for("register"))
+                selected_plan = voucher.plan or "premium"
+
             user = User(
                 name=request.form.get("name", "").strip(),
                 email=email,
@@ -229,10 +325,21 @@ def create_app() -> Flask:
                 city=request.form.get("city", "").strip(),
                 vehicle_type=request.form.get("vehicle_type", "Carro"),
                 main_platform=request.form.get("main_platform", "Uber"),
+                plan=selected_plan,
             )
-            user.set_password(request.form.get("password", ""))
+
+            if voucher:
+                user.plan_expires_at = datetime.utcnow() + timedelta(days=voucher.days or 180)
+
+            user.set_password(password)
             db.session.add(user)
             db.session.flush()
+
+            if voucher:
+                voucher.usado = True
+                voucher.usado_por_id = user.id
+                voucher.usado_em = datetime.utcnow()
+
             goal = Goal(
                 user_id=user.id,
                 daily_goal=parse_float(request.form.get("daily_goal"), 300),
@@ -245,7 +352,11 @@ def create_app() -> Flask:
             )
             db.session.add(goal)
             db.session.commit()
-            flash("Cadastro realizado com sucesso. Faça login para continuar.", "success")
+
+            if voucher:
+                flash("Cadastro realizado com voucher Premium válido por 6 meses. Faça login para continuar.", "success")
+            else:
+                flash("Cadastro realizado com sucesso. Finalize o pagamento do plano escolhido para liberar o acesso.", "success")
             return redirect(url_for("login"))
         return render_template("register.html", platforms=PLATFORMS)
 
@@ -317,10 +428,15 @@ def create_app() -> Flask:
     @login_required
     def incomes():
         user = get_current_user()
+        companies = get_available_companies(user.id)
         if request.method == "POST":
+            company_id = request.form.get("company_id", type=int)
+            company = get_company_for_user(company_id, user.id) if company_id else None
+            platform = company.name if company else request.form.get("platform", "Outro")
             entry = IncomeEntry(
                 user_id=user.id,
-                platform=request.form.get("platform", "Outro"),
+                company_id=company.id if company else None,
+                platform=platform,
                 description=request.form.get("description", "").strip(),
                 amount=parse_float(request.form.get("amount"), 0),
                 km=parse_float(request.form.get("km"), 0),
@@ -333,7 +449,72 @@ def create_app() -> Flask:
             return redirect(url_for("incomes"))
 
         entries = IncomeEntry.query.filter_by(user_id=user.id).order_by(IncomeEntry.entry_date.desc(), IncomeEntry.id.desc()).all()
-        return render_template("ganhos.html", entries=entries, platforms=PLATFORMS)
+        return render_template("ganhos.html", entries=entries, platforms=PLATFORMS, companies=companies)
+
+
+    @app.route("/empresas", methods=["GET", "POST"])
+    @login_required
+    def companies_page():
+        user = get_current_user()
+        if request.method == "POST":
+            name = request.form.get("name", "").strip()
+            if not name:
+                flash("Informe o nome da empresa/plataforma.", "danger")
+                return redirect(url_for("companies_page"))
+            company = Company(
+                user_id=user.id,
+                name=name,
+                category=request.form.get("category", "Aplicativo").strip() or "Aplicativo",
+                logo_url=request.form.get("logo_url", "").strip(),
+                is_active=True,
+            )
+            db.session.add(company)
+            db.session.commit()
+            flash("Empresa adicionada com sucesso.", "success")
+            return redirect(url_for("companies_page"))
+        companies = get_available_companies(user.id, include_inactive=True)
+        return render_template("empresas.html", companies=companies)
+
+    @app.route("/empresas/<int:company_id>/toggle", methods=["POST"])
+    @login_required
+    def toggle_company(company_id: int):
+        user = get_current_user()
+        company = Company.query.filter_by(id=company_id, user_id=user.id).first_or_404()
+        company.is_active = not company.is_active
+        db.session.commit()
+        flash("Status da empresa atualizado.", "success")
+        return redirect(url_for("companies_page"))
+
+    @app.route("/manutencoes", methods=["GET", "POST"])
+    @login_required
+    def maintenance_page():
+        user = get_current_user()
+        if request.method == "POST":
+            item = MaintenanceItem(
+                user_id=user.id,
+                title=request.form.get("title", "").strip() or "Manutenção",
+                description=request.form.get("description", "").strip(),
+                due_km=parse_float(request.form.get("due_km"), 0) or None,
+                due_date=parse_date(request.form.get("due_date")),
+                status="aberto",
+            )
+            db.session.add(item)
+            db.session.commit()
+            flash("Alerta de manutenção salvo.", "success")
+            return redirect(url_for("maintenance_page"))
+        items = MaintenanceItem.query.filter_by(user_id=user.id).order_by(MaintenanceItem.status, MaintenanceItem.due_date.asc().nullslast()).all()
+        current_km = get_current_vehicle_km(user.id)
+        return render_template("manutencoes.html", items=items, current_km=current_km)
+
+    @app.route("/manutencoes/<int:item_id>/concluir", methods=["POST"])
+    @login_required
+    def finish_maintenance(item_id: int):
+        user = get_current_user()
+        item = MaintenanceItem.query.filter_by(id=item_id, user_id=user.id).first_or_404()
+        item.status = "concluido"
+        db.session.commit()
+        flash("Manutenção marcada como concluída.", "success")
+        return redirect(url_for("maintenance_page"))
 
     @app.route("/gastos", methods=["GET", "POST"])
     @login_required
@@ -422,13 +603,21 @@ def create_app() -> Flask:
         flash("Lançamento removido.", "info")
         return redirect(request.referrer or url_for("dashboard"))
 
+
+    @app.route("/admin/migrar")
+    def admin_migrar():
+        ensure_schema()
+        seed_default_companies()
+        return "Migração executada com sucesso. Tabelas e colunas novas garantidas."
+
     @app.route("/admin/seed")
     def admin_seed():
-        db.create_all()
+        ensure_schema()
+        seed_default_companies()
         if Announcement.query.count() == 0:
             db.session.add_all(
                 [
-                    Announcement(title="Teste grátis", body="Ative o plano Pro por 7 dias e valide a proposta de valor.", is_active=True),
+                    Announcement(title="Sem plano grátis", body="O MotorCash agora trabalha apenas com planos pagos: Essencial, Profissional e Premium.", is_active=True),
                     Announcement(title="Venda consultiva", body="Ofereça o app como copiloto financeiro do motorista, não só como controle de gastos.", is_active=True),
                     Announcement(title="PWA pronto", body="Este projeto já pode ser instalado no celular como aplicativo.", is_active=True),
                 ]
@@ -532,6 +721,16 @@ def get_metrics(user: User) -> dict:
     ):
         by_platform[platform] = float(amount or 0)
 
+    by_company = defaultdict(float)
+    for company_name, amount in (
+        db.session.query(func.coalesce(Company.name, IncomeEntry.platform), func.sum(IncomeEntry.amount))
+        .outerjoin(Company, IncomeEntry.company_id == Company.id)
+        .filter(IncomeEntry.user_id == user.id, IncomeEntry.entry_date >= start_month, IncomeEntry.entry_date <= today)
+        .group_by(func.coalesce(Company.name, IncomeEntry.platform))
+        .all()
+    ):
+        by_company[company_name or "Outros"] = float(amount or 0)
+
     by_category = defaultdict(float)
     for category, amount in (
         db.session.query(ExpenseEntry.category, func.sum(ExpenseEntry.amount))
@@ -571,6 +770,11 @@ def get_metrics(user: User) -> dict:
     if user.is_premium and suggested_tax_reserve > 0:
         insights.append(f"Separe R$ {suggested_tax_reserve:.2f} este mês para imposto conforme sua reserva configurada.")
 
+    current_km = get_current_vehicle_km(user.id)
+    maintenance_alerts = get_open_maintenance_alerts(user.id, current_km)
+    for alert in maintenance_alerts[:3]:
+        insights.append(alert)
+
     return {
         "income_today": round(income_today, 2),
         "expense_today": round(expense_today, 2),
@@ -605,7 +809,9 @@ def get_metrics(user: User) -> dict:
         "profit_per_km_today": round(profit_today / max(total_km_today, 1), 2) if total_km_today > 0 else 0,
         "profit_per_hour_today": round(profit_today / max(total_hours_today, 1), 2) if total_hours_today > 0 else 0,
         "by_platform": dict(by_platform),
+        "by_company": dict(by_company),
         "by_category": dict(by_category),
+        "maintenance_alerts": maintenance_alerts,
         "daily_points": daily_points,
         "insights": insights,
     }
@@ -661,9 +867,70 @@ def sum_shift_hours(user_id: int, start: date, end: date) -> float:
     ).all()
     return sum(shift.hours_total for shift in shifts)
 
+
+def seed_default_companies() -> None:
+    for item in DEFAULT_COMPANIES:
+        existing = Company.query.filter_by(user_id=None, name=item["name"]).first()
+        if not existing:
+            db.session.add(Company(user_id=None, name=item["name"], category=item["category"], logo_url=item["logo_url"], is_active=True))
+    db.session.commit()
+
+
+def get_available_companies(user_id: int, include_inactive: bool = False) -> list[Company]:
+    query = Company.query.filter((Company.user_id.is_(None)) | (Company.user_id == user_id))
+    if not include_inactive:
+        query = query.filter(Company.is_active.is_(True))
+    return query.order_by(Company.user_id.asc().nullsfirst(), Company.name.asc()).all()
+
+
+def get_company_for_user(company_id: int | None, user_id: int) -> Company | None:
+    if not company_id:
+        return None
+    return Company.query.filter(Company.id == company_id, ((Company.user_id.is_(None)) | (Company.user_id == user_id)), Company.is_active.is_(True)).first()
+
+
+def get_current_vehicle_km(user_id: int) -> float:
+    last_shift = DailyShift.query.filter(DailyShift.user_id == user_id, DailyShift.end_km.isnot(None)).order_by(DailyShift.end_time.desc()).first()
+    return float(last_shift.end_km or 0) if last_shift else 0.0
+
+
+def get_open_maintenance_alerts(user_id: int, current_km: float) -> list[str]:
+    alerts: list[str] = []
+    today = date.today()
+    items = MaintenanceItem.query.filter_by(user_id=user_id, status="aberto").all()
+    for item in items:
+        if item.due_date and item.due_date <= today:
+            alerts.append(f"Manutenção vencida: {item.title} estava prevista para {item.due_date.strftime('%d/%m/%Y')}.")
+        elif item.due_date and (item.due_date - today).days <= 7:
+            alerts.append(f"Manutenção próxima: {item.title} vence em {(item.due_date - today).days} dia(s).")
+        if item.due_km and current_km and item.due_km <= current_km:
+            alerts.append(f"Manutenção por KM vencida: {item.title} prevista para {item.due_km:.0f} km.")
+        elif item.due_km and current_km and (item.due_km - current_km) <= 500:
+            alerts.append(f"Manutenção próxima: faltam {max(item.due_km - current_km, 0):.0f} km para {item.title}.")
+    return alerts
+
+
+def ensure_schema() -> None:
+    """Cria tabelas e adiciona colunas novas em bancos já existentes.
+
+    Útil para Render/Supabase sem Alembic neste MVP.
+    """
+    db.create_all()
+    inspector = inspect(db.engine)
+    table_names = inspector.get_table_names()
+    if "income_entry" in table_names:
+        columns = {col["name"] for col in inspector.get_columns("income_entry")}
+        if "company_id" not in columns:
+            dialect = db.engine.dialect.name
+            sql = "ALTER TABLE income_entry ADD COLUMN company_id INTEGER"
+            db.session.execute(text(sql))
+            db.session.commit()
+
+
 app = create_app()
 
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()
+        ensure_schema()
+        seed_default_companies()
     app.run(debug=True)

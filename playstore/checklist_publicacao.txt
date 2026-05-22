@@ -1,0 +1,16 @@
+CHECKLIST PLAY STORE - MOTORCASH
+
+1. App online em HTTPS no Render
+2. Manifest funcionando em /manifest.json
+3. Ícone PNG 512x512 em static/icons/icon-512.png
+4. Política de privacidade publicada em /privacidade
+5. Termos de uso publicados em /termos
+6. Página de exclusão de conta publicada em /excluir-conta
+7. Cadastro funcionando
+8. Login funcionando
+9. Jornada automática funcionando
+10. Planos pagos configurados: R$ 9,90, R$ 19,90 e R$ 29,90
+11. Screenshots gerados para a Play Store
+12. Conta Google Play Console criada
+13. APK/AAB gerado por Bubblewrap ou Android Studio
+14. Cobrança real conectada ou explicar assinatura externa conforme estratégia escolhida

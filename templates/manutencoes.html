@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Manutenção | MotorCash{% endblock %}
+{% block page_title %}Controle de manutenção{% endblock %}
+{% block content %}
+<section class="two-col">
+    <form class="card form-card" method="post">
+        <h2>Novo alerta</h2>
+        <p class="muted">Use para troca de óleo, pneus, revisão, seguro, IPVA ou qualquer manutenção preventiva.</p>
+        <label>Serviço
+            <input name="title" placeholder="Ex: Troca de óleo" required>
+        </label>
+        <label>Descrição
+            <input name="description" placeholder="Ex: óleo 5W30 + filtro">
+        </label>
+        <label>Vencimento por KM
+            <input type="number" step="1" name="due_km" placeholder="Ex: 85000">
+        </label>
+        <label>Vencimento por data
+            <input type="date" name="due_date">
+        </label>
+        <button class="btn btn-primary" type="submit">Salvar alerta</button>
+    </form>
+
+    <div class="card">
+        <h2>Alertas ativos</h2>
+        <p class="muted">KM atual estimado pela última jornada finalizada: <strong>{{ '%.0f'|format(current_km) }} km</strong></p>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Serviço</th><th>KM</th><th>Data</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td><strong>{{ item.title }}</strong><br><span class="muted">{{ item.description }}</span></td>
+                        <td>{{ '%.0f'|format(item.due_km) if item.due_km else '-' }}</td>
+                        <td>{{ item.due_date.strftime('%d/%m/%Y') if item.due_date else '-' }}</td>
+                        <td>{{ item.status }}</td>
+                        <td>
+                            {% if item.status != 'concluido' %}
+                            <form method="post" action="{{ url_for('finish_maintenance', item_id=item.id) }}">
+                                <button class="btn-link" type="submit">Concluir</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5">Nenhum alerta cadastrado.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

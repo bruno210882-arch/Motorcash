@@ -2,56 +2,118 @@
 {% block title %}Criar conta | MotorCash{% endblock %}
 {% block page_title %}Crie sua conta{% endblock %}
 {% block content %}
-<form class="card form-card wide" method="post">
-    <h2>Cadastro do motorista</h2>
-    <div class="form-grid">
-        <label>Nome completo
-            <input type="text" name="name" required>
-        </label>
-        <label>E-mail
-            <input type="email" name="email" required>
-        </label>
-        <label>Telefone
-            <input type="text" name="phone">
-        </label>
-        <label>Cidade
-            <input type="text" name="city">
-        </label>
-        <label>Senha
-            <input type="password" name="password" required>
-        </label>
-        <label>Tipo de veículo
-            <input type="text" name="vehicle_type" value="Carro">
-        </label>
-        <label>Plataforma principal
-            <select name="main_platform">
-                {% for platform in platforms %}
-                <option value="{{ platform }}">{{ platform }}</option>
-                {% endfor %}
-            </select>
-        </label>
-        <label>Meta diária de lucro
-            <input type="number" step="0.01" name="daily_goal" value="300">
-        </label>
-        <label>Meta semanal de lucro
-            <input type="number" step="0.01" name="weekly_goal" value="1800">
-        </label>
-        <label>Meta mensal de lucro
-            <input type="number" step="0.01" name="monthly_goal" value="7200">
-        </label>
-        <label>Consumo médio km/l
-            <input type="number" step="0.01" name="fuel_consumption_km_l" value="10">
-        </label>
-        <label>Custo fixo mensal
-            <input type="number" step="0.01" name="fixed_cost_monthly" value="0">
-        </label>
-        <label>Reserva mensal manutenção
-            <input type="number" step="0.01" name="maintenance_reserve_monthly" value="0">
-        </label>
-        <label>Reserva fiscal %
-            <input type="number" step="0.01" name="tax_reserve_pct" value="0">
-        </label>
-    </div>
-    <button class="btn btn-primary" type="submit">Criar conta</button>
-</form>
+<section class="auth-wrap">
+    <form class="card form-card wide register-premium" method="post">
+        <div class="section-head">
+            <div>
+                <p class="eyebrow">Cadastro do motorista</p>
+                <h2>Comece com seu plano e configuração inicial</h2>
+                <p class="muted">Preencha os dados principais para o MotorCash já calcular metas, custos e lucro real desde o primeiro acesso.</p>
+            </div>
+            <a class="btn btn-secondary" href="{{ url_for('login') }}">Já tenho uma conta</a>
+        </div>
+
+        <div class="card soft-card">
+            <h3>1. Dados de acesso</h3>
+            <div class="form-grid">
+                <label>Nome completo
+                    <input type="text" name="name" placeholder="Ex: Bruno Cardoso" required>
+                </label>
+                <label>E-mail
+                    <input type="email" name="email" placeholder="seuemail@email.com" required>
+                </label>
+                <label>Telefone
+                    <input type="text" name="phone" placeholder="(00) 00000-0000">
+                </label>
+                <label>Cidade
+                    <input type="text" name="city" placeholder="Ex: Hortolândia/SP">
+                </label>
+                <label>Senha
+                    <input type="password" name="password" placeholder="Crie uma senha segura" required>
+                </label>
+                <label>Voucher promocional
+                    <input type="text" name="voucher" placeholder="Ex: MOTORVIP1">
+                </label>
+            </div>
+        </div>
+
+        <div class="card soft-card">
+            <h3>2. Plano desejado</h3>
+            <div class="plan-radio-grid">
+                <label class="plan-choice">
+                    <input type="radio" name="plan" value="basic" checked>
+                    <strong>Essencial</strong>
+                    <span>R$ 9,90/mês</span>
+                    <small>Dashboard, jornada, ganhos e gastos ilimitados.</small>
+                </label>
+                <label class="plan-choice featured">
+                    <input type="radio" name="plan" value="pro">
+                    <strong>Profissional</strong>
+                    <span>R$ 19,90/mês</span>
+                    <small>Metas, indicadores por KM/hora e relatórios avançados.</small>
+                </label>
+                <label class="plan-choice">
+                    <input type="radio" name="plan" value="premium">
+                    <strong>Premium</strong>
+                    <span>R$ 29,90/mês</span>
+                    <small>Insights, reserva fiscal, suporte prioritário e recursos premium.</small>
+                </label>
+            </div>
+            <p class="muted">Voucher válido ativa automaticamente o plano Premium por 6 meses.</p>
+        </div>
+
+        <div class="card soft-card">
+            <h3>3. Perfil de trabalho</h3>
+            <div class="form-grid">
+                <label>Tipo de veículo
+                    <select name="vehicle_type">
+                        <option value="Carro">Carro</option>
+                        <option value="Moto">Moto</option>
+                        <option value="Van">Van</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </label>
+                <label>Plataforma principal
+                    <select name="main_platform">
+                        {% for platform in platforms %}
+                        <option value="{{ platform }}">{{ platform }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+            </div>
+        </div>
+
+        <div class="card soft-card">
+            <h3>4. Metas e custos iniciais</h3>
+            <div class="form-grid">
+                <label>Meta diária de lucro
+                    <input type="number" step="0.01" name="daily_goal" value="300">
+                </label>
+                <label>Meta semanal de lucro
+                    <input type="number" step="0.01" name="weekly_goal" value="1800">
+                </label>
+                <label>Meta mensal de lucro
+                    <input type="number" step="0.01" name="monthly_goal" value="7200">
+                </label>
+                <label>Consumo médio km/l
+                    <input type="number" step="0.01" name="fuel_consumption_km_l" value="10">
+                </label>
+                <label>Custo fixo mensal
+                    <input type="number" step="0.01" name="fixed_cost_monthly" value="0">
+                </label>
+                <label>Reserva mensal para manutenção
+                    <input type="number" step="0.01" name="maintenance_reserve_monthly" value="0">
+                </label>
+                <label>Reserva fiscal %
+                    <input type="number" step="0.01" name="tax_reserve_pct" value="0">
+                </label>
+            </div>
+        </div>
+
+        <div class="cta-row">
+            <button class="btn btn-primary" type="submit">Criar conta</button>
+            <a class="btn btn-secondary" href="{{ url_for('landing') }}">Voltar</a>
+        </div>
+    </form>
+</section>
 {% endblock %}
